@@ -30,9 +30,11 @@ app.listen(port, () => {
 });
 
 //2. DATABASE MongoDB CONNECTIONS
-//Add connection string from Config file
-const config = require("./config/globals");
-let connectionString = config.db;
+// Option 2) Add connection string to Config file
+//const config = require("./config/globals");
+//let connectionString = config.db;
+const db_config = process.env.DB_STRING;
+let connectionString = db_config;
 var mongoose = require("mongoose");
 //Configure mongoose (initial database connection)
 mongoose
@@ -70,9 +72,12 @@ passport.use(User.createStrategy());
 passport.use(
   new githubStrategy(
     {
-      clientID: config.github.clientId,
-      clientSecret: config.github.clientSecret,
-      callbackURL: config.github.callbackUrl,
+      //clientID: config.github.clientId,
+      //clientSecret: config.github.clientSecret,
+      //callbackURL: config.github.callbackUrl,
+      clientID: process.env.GITHUB_CLIENTID,
+      clientSecret: process.env.GITHUB_CLIENTSECRET,
+      callbackURL: process.env.GITHUB_CALLBACKURL,
     },
     async (accessToken, refreshToken, profile, done) => {
       const user = await User.findOne({ oauthId: profile.id });
@@ -180,7 +185,8 @@ app.post('/identifyM', async (req, res) => {
 //IDENTIFY PLANT (PlantNet)
 app.post('/identifyP', async (req, res) => {
   const project = 'all?include-related-images=false&no-reject=false&lang=en&type=kt';
-  const apiKey = config.plantNetAPI;
+  //const apiKey = config.plantNetAPI;
+  const apiKey = process.env.PLANTNET_APIKEY;
   const apiUrl = `https://my-api.plantnet.org/v2/identify/${project}&api-key=${apiKey}`;
   // Check if req.files.images[] exists and is not empty
   if (!req.files || !req.files['images[]']) {
@@ -250,6 +256,7 @@ module.exports = app;
 app.post('/identifyP', async (req, res) => {
   const project = 'all?include-related-images=false&no-reject=false&lang=en&type=kt';
   const apiKey = config.plantNetAPI;
+  //  const apiKey = process.env.PLANTNET_APIKEY;
   const apiUrl = `https://my-api.plantnet.org/v2/identify/${project}&api-key=${apiKey}`;
   const formData = new FormData();
 

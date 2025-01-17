@@ -2,8 +2,7 @@
 //1. large amount of data, takes 10+ seconds to load everything initially, so the user needs to make a specific search
 //2. easier to load more data per single species
 document.addEventListener('DOMContentLoaded', () => {
-  //const jsonUrl = '/routes/speciesList.json'; // Ensure this path is correct
-  const jsonUrl = '/routes/speciesList-sample.json'; // Ensure this path is correct
+  const jsonUrl = '/routes/speciesList.json'; // Ensure this path is correct
 
   const searchInput = document.getElementById('dataviewer-search-bar');
   const dropdownMenu = document.getElementById('dataviewer-dropdown-menu');
