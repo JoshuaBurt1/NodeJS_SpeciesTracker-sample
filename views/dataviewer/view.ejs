@@ -1,0 +1,52 @@
+<%- include('../partials/header') %>
+
+<h1 class="display-5"><%= title %></h1>
+
+<% if (speciesData && speciesData.length > 0) { %>
+  <% speciesData.forEach(item => { %>
+    <h2><%= item.name %> (<%= item.binomialNomenclature %>)</h2>
+    <p><strong>Kingdom:</strong> <%= item.kingdom %></p>
+    
+    <div class="info-container">
+      <div class="locations">
+        <h3>Locations:</h3>
+        <ul>
+          <% item.locations.forEach(location => { %>
+            <li><%= location %></li>
+          <% }); %>
+        </ul>
+      </div>
+      <div class="update-dates">
+        <h3>Update Dates:</h3>
+        <ul>
+          <% item.updateDates.forEach(date => { %>
+            <li><%= date %></li>
+          <% }); %>
+        </ul>
+      </div>
+      <div class="sightings-chart">
+        <h3>Frequency of Sightings:</h3>
+        <canvas id="sightingsChart<%= item.name.replace(/\s+/g, '') %>" width="400" height="200"></canvas>
+      </div>
+    </div>
+
+    <h3>Images:</h3>
+    <div class="flex-grid">
+      <% item.images.forEach(image => { %>
+        <div class="image-container">
+          <img src="/images/<%= item.kingdom.toLowerCase() %>_images/<%= image %>" alt="<%= item.name %>" class="flex-image" onclick="showImage(this)" />
+        </div>
+      <% }); %>
+    </div>
+    
+  <% }); %>
+<% } else { %>
+  <p>No data available for this species.</p>
+<% } %>
+
+<div class="overlay" onclick="hideImage()">
+  <span class="close" onclick="hideImage()">&times;</span>
+  <img class="enlarged-image" id="enlarged-image" />
+</div>
+
+<%- include('../partials/footer') %>

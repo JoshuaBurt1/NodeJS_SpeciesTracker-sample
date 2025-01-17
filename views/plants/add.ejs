@@ -1,0 +1,199 @@
+<%- include('../partials/header') %>
+<h1><%= title %></h1>
+<span>Select one or more image files to upload. 1 classification : 1 image uploaded.</span> <br>
+<span class="strike">Select one or more image files to upload. 1 classification : multiple images uploaded.</span>
+
+<form id="addPlantForm" method="POST" action="/plants/add" enctype="multipart/form-data">
+  <div id="dataVisual">
+    <div id="imageAndName">
+      <fieldset class="form-group">
+        <label for="image" class="col-2">Image:</label>
+        <input type="file" name="images" id="image" class="form-control" style="margin-bottom: 10px;" accept=".jpg, .jpeg, .png" required multiple onchange="identifyPlant()">
+      </fieldset>
+      <div id="top4"></div>
+    </div>
+  </div>
+
+  <div id="coordinates">
+    <span id="help">If unsure of coordinates - enter name of location, then copy map coordinates</span>
+  </div>
+  <div id="map" style="height: 300px;"></div>
+
+  <button class="offset-3 btn btn-primary">Save</button>
+</form>
+<script defer>
+    const eventSource = new EventSource('/events');
+
+    eventSource.onmessage = function(event) {
+        const count = event.data;
+        document.getElementById('top4').innerHTML = `<p>Classification: ${count} complete</p>`;
+    };
+
+    async function identifyPlant() {
+        const images = document.getElementById('image').files;
+        const formData = new FormData();
+
+        if (images.length === 0) {
+            console.error('No images selected');
+            return;
+        }
+
+        for (const image of images) {
+            formData.append('images[]', image);
+        }
+
+        try {
+            const apiUrl = 'http://localhost:3000/identifyP';
+            const response = await fetch(apiUrl, { method: 'POST', body: formData });
+
+            if (!response.ok) {
+                console.error('Error response status:', response.status);
+                console.log('Error response text:', await response.text());
+                return;
+            }
+
+            const data = await response.json();
+            displayMatches(data.top4Matches, images);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function displayMatches(matchesArray, images) {
+        const top4Div = document.getElementById('top4');
+        top4Div.innerHTML = '';
+
+        matchesArray.forEach((matches, imgIndex) => {
+            const cellDiv = document.createElement('div');
+            cellDiv.className = 'match-cell';
+
+            const imgHeader = document.createElement('h4');
+            imgHeader.textContent = `Matches for Image ${imgIndex + 1}:`;
+            cellDiv.appendChild(imgHeader);
+
+            const imageElement = document.createElement('img');
+            imageElement.src = URL.createObjectURL(images[imgIndex]);
+            imageElement.alt = `Uploaded Image ${imgIndex + 1}`;
+            imageElement.style.width = '50%';
+            imageElement.style.height = 'auto';
+            cellDiv.appendChild(imageElement);
+
+            const fieldset = createFieldsetForImage(imgIndex, matches);
+            cellDiv.appendChild(fieldset);
+
+            matches.forEach((match, index) => {
+                const matchDiv = createMatchDiv(match, fieldset, index);
+                cellDiv.appendChild(matchDiv);
+            });
+
+            top4Div.appendChild(cellDiv);
+            extractExifData(images[imgIndex], fieldset, imgIndex);
+        });
+    }
+
+    function createMatchDiv(match, fieldset, index) {
+        const matchDiv = document.createElement('div');
+        matchDiv.innerHTML = `
+            <strong>${index + 1}. Name:</strong> ${match.name}; 
+            <strong>Scientific Name:</strong> ${match.scientificName}; 
+            <strong>Score:</strong> ${match.score}
+        `;
+
+        const button = document.createElement('button');
+        button.textContent = 'Select';
+        button.type = 'button';
+        button.onclick = () => updateFieldset(fieldset, match);
+        matchDiv.appendChild(button);
+
+        return matchDiv;
+    }
+
+    function extractExifData(file, fieldset, imgIndex) {
+        getExifData(file).then(exifData => {
+            if (exifData) {
+                const dateInput = fieldset.querySelector(`input[name="updateDate[${imgIndex}]"]`);
+                const locationInput = fieldset.querySelector(`input[name="location[${imgIndex}]"]`);
+
+                if (exifData.date) dateInput.value = exifData.date;
+                if (exifData.location) locationInput.value = exifData.location;
+            }
+        });
+    }
+
+    async function getExifData(file) {
+        return new Promise(resolve => {
+            EXIF.getData(file, function() {
+                const dateTaken = EXIF.getTag(this, 'DateTimeOriginal');
+                const latitudeArray = EXIF.getTag(this, 'GPSLatitude');
+                const longitudeArray = EXIF.getTag(this, 'GPSLongitude');
+                const latitudeRef = EXIF.getTag(this, 'GPSLatitudeRef');
+                const longitudeRef = EXIF.getTag(this, 'GPSLongitudeRef');
+
+                let location = null;
+                if (latitudeArray && longitudeArray) {
+                    const latitude = convertToDecimal(latitudeArray, latitudeRef);
+                    const longitude = convertToDecimal(longitudeArray, longitudeRef);
+                    location = `${latitude}, ${longitude}`;
+                }
+
+                resolve({ date: dateTaken, location });
+            });
+        });
+    }
+
+    function convertToDecimal(valueArray, ref) {
+        const degrees = valueArray[0];
+        const minutes = valueArray[1] / 60;
+        const seconds = valueArray[2] / 3600;
+        let decimal = degrees + minutes + seconds;
+        if (ref === 'S' || ref === 'W') decimal *= -1;
+        return decimal.toFixed(6);
+    }
+
+    function createFieldsetForImage(imgIndex, matches) {
+        const fieldset = document.createElement('fieldset');
+        fieldset.className = 'form-group match-fieldset';
+        fieldset.id = `fieldset-${imgIndex}`;
+
+        const fields = [
+            { label: 'Name:', name: `name[${imgIndex}]`, readOnly: true },
+            { label: 'Scientific Name:', name: `binomialNomenclature[${imgIndex}]`, readOnly: true },
+            { label: 'Date Identified:', name: `updateDate[${imgIndex}]`, required: true, placeholder: 'YYYY:MM:DD HH:mm:ss', pattern: '^\\d{4}:\\d{2}:\\d{2} \\d{2}:\\d{2}:\\d{2}$' },
+            { label: 'Location:', name: `location[${imgIndex}]`, required: true, placeholder: 'Latitude, Longitude (e.g., 45.0000, -45.0000)', pattern: '^-?\\d{1,2}\\.\\d{6}, -?\\d{1,3}\\.\\d{6}$' }
+        ];
+
+        fields.forEach(({ label, name, readOnly, required, placeholder, pattern }) => {
+            const labelElement = document.createElement('label');
+            labelElement.textContent = label;
+            fieldset.appendChild(labelElement);
+
+            const input = document.createElement('input');
+            input.name = name;
+            input.className = 'form-control';
+            if (readOnly) input.readOnly = true;
+            if (required) input.required = true;
+            if (placeholder) input.placeholder = placeholder;
+            if (pattern) input.pattern = pattern; // Add regex pattern for validation
+            fieldset.appendChild(input);
+        });
+
+        if (matches.length > 0) {
+            const match = matches[0];
+            fieldset.querySelector(`input[name="name[${imgIndex}]"]`).value = match.name || '';
+            fieldset.querySelector(`input[name="binomialNomenclature[${imgIndex}]"]`).value = match.scientificName || '';
+        }
+
+        return fieldset;
+    }
+
+    function updateFieldset(fieldset, match) {
+    const nameInput = fieldset.querySelector('input[name^="name"]');
+    const sciNameInput = fieldset.querySelector('input[name^="binomialNomenclature"]');
+
+    // Replace "×" with "x"
+    nameInput.value = match.name.replace(/×/g, 'x');
+    sciNameInput.value = match.scientificName.replace(/×/g, 'x');
+}
+</script>
+
+<%- include('../partials/footer') %>

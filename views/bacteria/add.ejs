@@ -1,0 +1,63 @@
+<%- include('../partials/header') %>
+<h1><%= title %></h1>
+
+<form id="addBacteriaForm" method="POST" enctype="multipart/form-data">
+  <!-- ... other form fields ... -->
+  <div id="dataVisual">
+    <div id="imageAndName">
+        <fieldset class="form-group">
+            <label for="image" class="col-2">Image:</label>
+            <input type="file" name="image" id="image" class="form-control" accept=".jpg, .jpeg, .png">
+        </fieldset>
+        <div id="nameRow">
+        <fieldset class="form-group">
+            <label for="name" class="col-2">Name:</label>
+            <input name="name" id="name" class="form-control" required/>
+        </fieldset>
+        <fieldset class="form-group">
+            <label for="binomialNomenclature" class="col-2">Scientific Name:</label>
+            <input name="binomialNomenclature" id="binomialNomenclature" class="form-control" required/>
+        </fieldset>
+      </div>
+        <div id="top4"></div> <!-- list top 3 names, scientific name and percentages -->
+    </div>
+    <div id="imageVisual">
+        <img src="/site_images/noimage.png" alt="No image" id="preview">
+    </div>
+  </div>
+  <fieldset class="form-group">
+    <label for="updateDate" class="col-2">Date Identified:</label>
+    <input
+      name="updateDate"
+      id="updateDate"
+      required
+      class="form-control"
+      placeholder="YYYY:MM:DD HH:mm:ss"
+    />
+  </fieldset>
+  <!-- -->
+  <fieldset class="form-group">
+    <label for="location" class="col-2">Location:</label>
+    <input name="location" id="location" class="form-control" placeholder="Latitude, Longitude (e.g., 45.0000, -45.0000)" required/>
+  </fieldset>
+  <!-- Display the selected location's coordinates -->
+  <div id="coordinates"><span id="help">If unsure of coordinates - enter name of location, then copy map coordinates</span></div>
+  <!-- Display the selected location's coordinates using Leaflet -->
+  <div id="map" style="height: 300px;"></div>
+  <!-- Button needs to be inside <form> element to trigger POST -->
+  <button class="offset-3 btn btn-primary" type="submit">Save</button>
+</form>
+
+<!--Sanitize data - NOTE: keep this, in-case of user DOM manipulation in browser console-->
+<script defer>
+  document.getElementById('addBacteriaForm').addEventListener('submit', function(event) {
+    // Remove parentheses from name and scientific name
+    const commonNameInput = document.getElementById('name');
+    const scientificInput = document.getElementById('binomialNomenclature');
+
+    commonNameInput.value = commonNameInput.value.replace(/[()]/g, '').trim();
+    scientificInput.value = scientificInput.value.replace(/[()]/g, '').trim();
+  });
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,107 @@
+<%- include('../partials/header') %>
+<div class="mb-3">
+  <h1>Your <%= title %></h1>
+</div>  
+<div id="rowFlex" class="mb-3"> <!-- Adding margin-bottom for spacing -->
+  <div class="container mt-5">
+    <form id="search-form" action="/protists" method="GET">
+      <div class="input-group">
+        <input type="text" class="form-control" id="search-bar" name="searchBar" placeholder="Search">
+        <button type="submit" class="btn btn-primary">Search</button>
+      </div>
+    </form>
+  </div>
+    <!-- Dropdown Menu -->
+    <div class="dropdown" id="buttonPad">
+      <button class="btn btn-secondary dropdown-toggle" type="button" id="searchDropdown" data-bs-toggle="dropdown" data-bs-target="#" aria-haspopup="true" aria-expanded="false">
+        Order by
+      </button>
+      <div class="dropdown-menu" aria-labelledby="searchDropdown">
+        <a class="dropdown-item" href="#">Default (Alphabetical)</a>
+        <a class="dropdown-item" href="#">Taxonomy</a>
+        <a class="dropdown-item" href="#">Conservation Status</a>
+        <a class="dropdown-item" href="#">Invasiveness</a>
+        <a class="dropdown-item" href="#">Industrial Usage</a>
+        <a class="dropdown-item" href="#">Nutrition</a>
+        <a class="dropdown-item" href="#">Toxicity</a>
+        <!-- Dropdown items go here -->
+      </div>
+   </div>
+    <!--{{#if user}}-->
+    <a class="btn btn-info" id="buttonPad" href="/protists/add">Add Specimen</a>
+    <!--{{/if}}-->
+</div>
+
+<!--{{! To Show data }}-->
+<div class="page-container"> <!-- Line Changed -->
+  <div class="table-container"> <!-- Line Changed -->
+    <table class="table table-striped table-hover">
+      <thead>
+        <th>Name</th>
+        <th>Date Identified</th>
+        <th>Location</th>
+        <th>Map</th>
+        <th>Image</th>
+        <!--{{#if ./user}}-->
+        <th>Actions</th>
+        <!--{{/if}} -->
+      </thead>
+      <tbody>
+        <% 
+          const userDataset = dataset.filter(item => item.user && item.user._id && item.user._id.toString() === user._id.toString());
+          
+          userDataset.forEach(function(item) { 
+        %>
+          <tr>
+            <td class="col-2"><%= item.name %><br><i><%= item.binomialNomenclature %></i></td>
+            <td>
+              <ul id="cellList"><%= item.updateDate %></ul>
+            </td>
+            <td>
+              <ul id="cellList" class="coordinates"><%= item.location %></ul>
+            </td>
+            <td class="map-container">
+              <div class="map" style="height: 250px; width: 250px;"></div>
+            </td>
+            <td class="col-md-3">
+              <img class="thumbnail w-75" src="images/protista_images/<%= item.image %>" onclick="showImage(this)" />
+              <div class="overlay" onclick="hideImage()">
+                <span class="close" onclick="hideImage()">&times;</span>
+                <img class="enlarged-image" id="enlarged-image" />
+              </div>
+            </td>
+            <td id="action">
+              <a class="btn btn-primary" href="/protists/edit/<%= item._id %>">Edit</a>
+              <a class="btn btn-danger" href="/protists/delete/<%= item._id %>" onclick="return confirmDeletion()">Delete</a>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+    <!-- Pagination -->
+  </div> <!-- Line Changed -->
+  <!-- Pagination -->
+  <div class="pagination">
+    <% if (currentPage > 1) { %>
+      <a href="/protists?page=1&searchBar=<%= searchQuery %>">&lt;&lt;</a>
+      <a href="/protists?page=<%= Math.max(currentPage - 10, 1) %>&searchBar=<%= searchQuery %>">&lt;</a>
+    <% } %>
+  
+    <% const maxPagesToShow = 10; // Adjust this value based on your preference %>
+    <% const startPage = Math.max(currentPage - Math.floor(maxPagesToShow / 2), 1); %>
+    <% const endPage = Math.min(startPage + maxPagesToShow - 1, totalPages); %>
+  
+    <% for (let i = startPage; i <= endPage; i++) { %>
+      <a href="/protists?page=<%= i %>&searchBar=<%= searchQuery %>" class="<%= currentPage === i ? 'active' : '' %>">
+        <%= i %>
+      </a>
+    <% } %>
+  
+    <% if (currentPage < totalPages) { %>
+      <a href="/protists?page=<%= Math.min(currentPage + 10, totalPages) %>&searchBar=<%= searchQuery %>">&gt;</a>
+      <a href="/protists?page=<%= totalPages %>&searchBar=<%= searchQuery %>">&gt;&gt;</a>
+    <% } %>
+  </div>
+</div> <!-- Line Changed -->
+
+<%- include('../partials/footer') %>

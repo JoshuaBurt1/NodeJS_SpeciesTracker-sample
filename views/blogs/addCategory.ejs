@@ -1,0 +1,17 @@
+<%- include('../partials/header') %>
+    <header>
+        <h1><%= title %></h1>
+    </header>
+    <div>
+        <form action="/blogs/addCategory" method="POST">
+            <label for="topic" class="col-2">Category:</label>
+            <input type="text" name="topic" class="form-control" required>
+
+            <!-- Visible input fields for other form elements -->
+            <label for="title" class="col-2">Title:</label>
+            <input type="text" name="title" class="form-control" required>
+        
+            <button class="offset-3 btn btn-primary">Save</button>
+        </form>
+    </div>
+<%- include('../partials/footer') %>

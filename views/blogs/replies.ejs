@@ -1,0 +1,78 @@
+<%- include('../partials/header') %>
+<header class="mb-4">
+    <h1><%= blog.title %></h1>
+</header>
+<div class="page-container">
+    <h5>Original Post:</h5>
+    <div id="blogPost" class="card">
+        <div class="card-body">
+            <p class="card-text"><%- blog.content.replace(/\n/g, '<br>') %></p>
+            <p class="card-text">
+                <p><strong>Posted by:</strong> <%= blog.user %> @ <span id="date"><%= blog.createdAt %></span> </p>
+                <% if (blog.createdAt.toString() === blog.updatedAt.toString()) { %>
+                <% } else { %>
+                    <p><strong>Edited</strong> @ <span id="date"><%= blog.updatedAt %></span></p>
+                <% } %>
+                </p>
+            </p>
+        </div>
+    </div>
+    <br>
+    <h5>Replies:</h5>
+    <div id="replySection">
+        <% paginatedReplies.forEach(reply => { %>
+            <div class="card mt-3" id="replyCard">
+                <div class="card-body">
+                    <!-- Display reply content and user details -->
+                    <p class="card-text"><%- reply.content.replace(/\n/g, '<br>') %></p>
+                    <p class="card-text">
+                        <p><strong>Posted by:</strong><%= reply.user%> @ <span id="date"><%= reply.createdAt %></span></p>
+                        <% if (reply.createdAt.toString() === reply.updatedAt.toString()) { %>
+                        <% } else { %>
+                            <p><strong>Edited</strong> @ <span id="date"><%= reply.updatedAt %></span></p>
+                        <% } %>
+                    </p>
+        
+                    <!-- Add a link/button to delete the reply -->
+                    <% if (user && (user.admin === 1 || user._id.toString() === reply.user._id.toString())) { %>
+                        <a class="btn btn-primary btn-sm" href="/blogs/editReply/<%= blog._id %>/<%= reply._id %>">Edit</a>
+                        <% if (user && user.admin === 1) { %>
+                            <a class="btn btn-danger btn-sm" href="/blogs/deleteReply/<%= blog._id %>/<%= reply._id %>" onclick="return confirmDeletion()">Delete</a>
+                        <% } %>
+                    <% } %>
+                </div>
+            </div>
+        <% }); %>
+    </div>
+
+    <% if (user) { %>
+        <div class="mt-4">
+            <button id="replyButton" class="offset-3 btn btn-primary">Reply</button>
+        </div>
+    <% } %>
+
+    <!-- Pagination -->
+    <div class="pagination">
+        <% if (currentPage > 1) { %>
+            <a href="/blogs/<%= blog._id %>?page=1">&lt;&lt;</a>
+            <a href="/blogs/<%= blog._id %>?page=<%= Math.max(currentPage - 1, 1) %>">&lt;</a>
+        <% } %>
+
+        <% const maxPagesToShow = 10; // Adjust this value based on your preference %>
+        <% const startPage = Math.max(currentPage - Math.floor(maxPagesToShow / 2), 1); %>
+        <% const endPage = Math.min(startPage + maxPagesToShow - 1, totalPages); %>
+
+        <% for (let i = startPage; i <= endPage; i++) { %>
+            <a href="/blogs/<%= blog._id %>?page=<%= i %>" class="<%= currentPage === i ? 'active' : '' %>">
+                <%= i %>
+            </a>
+        <% } %>
+
+        <% if (currentPage < totalPages) { %>
+            <a href="/blogs/<%= blog._id %>?page=<%= Math.min(currentPage + 1, totalPages) %>">&gt;</a>
+            <a href="/blogs/<%= blog._id %>?page=<%= totalPages %>">&gt;&gt;</a>
+        <% } %>
+    </div>
+</div> <!-- Line Changed -->
+
+<%- include('../partials/footer') %>

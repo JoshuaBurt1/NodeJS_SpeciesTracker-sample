@@ -1,0 +1,229 @@
+<%- include('../partials/header') %>
+
+<h1 class="display-5"><%= title %></h1>
+<div class="mb-3">
+  <p class="lead">View all data uploaded by users</p>
+</div>  
+
+<div class="row">
+  <div class="col-md-3" id="preWorksheet" style="display: flex; flex-direction: column; height: 100%;">
+    <h3>Worksheet</h3>
+    <ul id="worksheetEntries" style="flex-grow: 1;">
+      <!-- Entries will be added here dynamically -->
+    </ul>
+    <button id="analyze" class="btn btn-primary" style="margin-top: auto;">Analyze</button> <!-- Button at bottom -->
+    <div id="resultArea" style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-top: 10px;"></div>
+
+  </div>
+  
+  <div class="col-md-9">
+    <div id="rowFlex" class="mb-3"> 
+      <div class="dropdown" id="buttonPadDataviewer">
+        <form id="dataviewer-dropdown-form" action="/dataviewer" method="GET">
+          <div class="input-group" id="searchDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">  
+            <input type="text" class="form-control" id="dataviewer-search-bar" name="searchBar" placeholder="Search. Use comma for multiple terms.">
+          </div>
+          <div class="dropdown-menu" id="dataviewer-dropdown-menu" aria-labelledby="searchDropdown">
+            <!-- Dropdown options will be dynamically inserted here -->
+          </div>
+        </form>
+      </div>
+
+      <!-- Dropdown Menu -->
+      <div class="dropdown" id="buttonPad">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="searchDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Order by
+        </button>
+        <div class="dropdown-menu" aria-labelledby="searchDropdown">
+          <a class="dropdown-item" href="#">Default (Alphabetical)</a>
+          <a class="dropdown-item" href="#">Taxonomy</a>
+          <a class="dropdown-item" href="#">Conservation Status</a>
+          <a class="dropdown-item" href="#">Invasiveness</a>
+          <a class="dropdown-item" href="#">Industrial Usage</a>
+          <a class="dropdown-item" href="#">Nutrition</a>
+          <a class="dropdown-item" href="#">Toxicity</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- To Show data -->
+    <div class="page-container">
+      <div class="table-container-dataviewer">
+        <% if (dataset && dataset.length > 0) { %>
+          <table class="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Date Identified</th>
+                <th>Location</th>
+                <th>Map</th>
+                <th>Image</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% dataset.forEach(function(item) { %>
+                <tr>
+                  <td class="col-2">
+                    <a href="/dataviewer/view?name=<%= encodeURIComponent(item.binomialNomenclature) %>">
+                      <b><%= item.name %></b>
+                    </a><br><i><%= item.binomialNomenclature %></i><br>
+                    <% if (item.showSightedLogo) { %>
+                      <img src="/public/site_images/sightedLogo.png" alt="Heart Icon" style="width: 50%; height: 50%;" />
+                    <% } %>
+                    <br>
+                    <input type="radio" name="metadata" value="0" id="same-metadata"> 
+                    <label for="same-metadata">Unmodified metadata</label><br> <!-- of all data - unmodified metadata (Most reliable)-->
+                    <input type="radio" name="metadata" value="1" id="changed-metadata"> 
+                    <label for="changed-metadata">Modified metadata</label><br> <!--of all data - modified metadata; data integrity check (Not as reliable)-->
+                    <input type="radio" name="metadata" value="default" id="default-metadata" checked> 
+                    <label for="default-metadata">Default (Both)</label><br><br> <!--all data -->
+                    <input type="checkbox" name="metadata" value="0" id="user-data"> 
+                    <label for="same-metadata">Only your data</label><br> <!--of all data - your data (with unmodified, modified, or default)-->
+                    <input type="checkbox" name="metadata" value="0" id="group-data"> 
+                    <label for="same-metadata">Only group data</label> <!--of all data - a group/individual user data (with unmodified, modified, or default)-->
+                    <input type="text" id="group-name" placeholder="Enter group name" /><br> <!-- name of the group or individual user-->
+                
+                    <!-- Time period entry -->
+                    <label for="time-period">Time Period:</label>
+                    <input type="text" id="time-period" placeholder="Enter time period" /><br><br>
+                    
+                    <!-- Add to Worksheet button -->
+                    <button type="button" id="add-to-worksheet" onclick="addToWorksheet('<%= item.binomialNomenclature %>', document.getElementById('time-period').value)">Add to Worksheet</button>
+                  </td>
+                  <td>
+                    <ul id="cellList">
+                      <% if (item.updateDates && item.updateDates.length > 0) { %>
+                        <% item.updateDates.slice(0, 10).forEach(function(updateDate) { %>
+                          <li><%= updateDate %></li>
+                        <% }); %>
+                        <% if (item.updateDates.length > 10) { %>
+                          <li>…</li> <!-- Ellipsis for more entries -->
+                        <% } %>
+                      <% } else { %>
+                        <li>No date available</li>
+                      <% } %>
+                    </ul>
+                  </td>
+                  <td>
+                    <div class="container">
+                      <div class="coordinates" data-species="<%= JSON.stringify(item.locations) %>">
+                        <ul id="cellList">
+                          <% if (item.locations && item.locations.length > 0) { %>
+                            <% item.locations.slice(0, 10).forEach(function(location) { %>
+                              <li><%= location %></li>
+                            <% }); %>
+                            <% if (item.locations.length > 10) { %>
+                              <li>…</li> <!-- Ellipsis for more entries -->
+                            <% } %>
+                          <% } else { %>
+                            <li>No location available</li>
+                          <% } %>
+                        </ul>
+                      </div>
+                    </div>
+                  </td>
+                  <td id="td5" class="map-container">
+                    <div class="map" style="height: 250px; width: 250px;"></div>
+                    <div class="gridCoordinates"></div>
+                    <div class="gridArea"></div>
+                    <div class="gridDensity"></div>
+                  </td>
+                  <td class="col-md-3">
+                    <% if (item.images && item.images.length > 0) { %>
+                      <% if (item.images.length === 1) { %>
+                        <img class="thumbnail w-75" src="/images/<%= item.kingdom.toLowerCase() %>_images/<%= item.images[0] %>" onclick="showImage(this)" />
+                      <% } else { %>
+                        <img class="thumbnail w-75" src="/images/<%= item.kingdom.toLowerCase() %>_images/<%= item.images[0] %>" onclick="showImage(this)" /> <br>
+                        <span class="additional-images">+ <%= item.images.length - 1 %> more</span>
+                      <% } %>
+                    <% } %>
+                    <div class="overlay" onclick="hideImage()">
+                      <span class="close" onclick="hideImage()">&times;</span>
+                      <img class="enlarged-image" id="enlarged-image" />
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        <% } else if (searchQuery) { %>
+          <p>No data available. Try another search.</p>
+          <div id="imageVisual"> 
+            <img id="dataviewerNoImage" src="public/site_images/noimage.png" alt="Image not found" />
+          </div>      
+        <% } else { %>
+          <p><!--Some kind of message here --></p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+
+<script>
+  function addToWorksheet(binomialNomenclature, timePeriod) {
+    const entry = document.createElement('li');
+    entry.innerHTML = `${binomialNomenclature} <br> Time Period: ${timePeriod}<br>`;
+    document.getElementById('worksheetEntries').appendChild(entry);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const rows = document.querySelectorAll("tbody tr");
+    const locations = [];
+    const updateDates = [];
+    const binomialNomenclatures = [];
+    const names = [];
+
+    rows.forEach(row => {
+      // Collect binomial nomenclature and name
+      const binomialNomenclature = row.querySelector('td:nth-child(1) i').textContent; // Adjust if necessary
+      const name = row.querySelector('td:nth-child(1) b').textContent;
+
+      // Collect locations
+      const locationList = row.querySelector(".coordinates ul");
+      if (locationList) {
+        locationList.querySelectorAll("li").forEach(location => {
+          locations.push(location.textContent);
+        });
+      }
+
+      // Collect update dates
+      const updateDateList = row.querySelector("td:nth-child(2) ul");
+      if (updateDateList) {
+        updateDateList.querySelectorAll("li").forEach(date => {
+          updateDates.push(date.textContent);
+        });
+      }
+
+      // Add to binomial nomenclatures and names arrays
+      binomialNomenclatures.push(binomialNomenclature);
+      names.push(name);
+    });
+
+    // Log the collected data
+    console.log({ binomialNomenclatures, names, updateDates, locations });
+
+    // Send the data to the server when needed
+    document.getElementById('analyze').addEventListener('click', async () => {
+      try {
+        const response = await fetch('/dataviewer/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ binomialNomenclatures, names, updateDates, locations }),
+        });
+
+        const result = await response.json();
+        const resultArea = document.getElementById('resultArea');
+        resultArea.innerHTML = `<pre>${result}</pre>`; // Display result in a formatted way
+      } catch (error) {
+        console.error('Error:', error);
+        const resultArea = document.getElementById('resultArea');
+        resultArea.innerHTML = 'Failed to analyze data. Please try again.';
+      }
+    });
+  });
+</script>

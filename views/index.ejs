@@ -1,0 +1,57 @@
+<%- include('./partials/header') %>
+<!-- Jumbotron HTML/Bootstrap header -->
+<div class="jumbotron" id="indexHeader">
+  <h1 class="display-3"><%= title %></h1>
+  <p class="lead">All about where to find species and their characteristics</p>
+  <p class="lead">Register/Login to contribute your findings</p>
+</div>
+
+<div class="row">
+  <div class="col-lg-12">
+    <div class="list-group">
+      <ul> 
+        <li>API path (testing): http://localhost:3000/api</li>
+        <li>API path: https://speciestracker3.azurewebsites.net/api</li>
+      </ul> <br>
+      <!-- Add the download link for the CSV file -->
+      <div id="inlineGroup">
+        <a href="/download-csv" id="downloadCsvLink" class="btn btn-primary btn-sm">Download CSV</a>
+        <p id="csvInfo">Loading...</p>
+      </div> <br>
+      <div id="inlineGroup">
+        <a href="/download-images" id="downloadImageLink" class="btn btn-primary btn-sm" download>Download Images</a> 
+        <p id="imageInfo">Loading...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('./partials/footer') %>
+
+<script defer>
+  // Displays downloadable file size data @ Home
+  document.addEventListener('DOMContentLoaded', function () {
+    const downloadCsvLink = document.getElementById('downloadCsvLink');
+    const csvInfo = document.getElementById('csvInfo');
+    const downloadImageLink = document.getElementById('downloadImageLink');
+    const imageInfo = document.getElementById('imageInfo');
+
+    // Fetch CSV file size
+    fetch('/csv-info')
+      .then(response => response.json()) // Parse response as JSON
+      .then(data => {
+        // Use the sizeKB returned from the server
+        csvInfo.textContent = `${data.sizeKB} KB`;
+      })
+      .catch(error => console.error('Error fetching CSV file info:', error));
+
+    // Fetch image directory size and last modified date from the server
+    fetch('/images-info')
+      .then(response => response.json())
+      .then(data => {
+        const sizeGB = (data.size / (1024 * 1024 * 1024)).toFixed(1); // Convert bytes to GB
+        imageInfo.textContent = `${sizeGB} GB`;
+      })
+      .catch(error => console.error('Error fetching image directory info:', error));
+  });
+</script>

@@ -1,0 +1,453 @@
+/*SCROLL*/
+.page-container {
+  background-color: #f8f9fa; /* Set your desired background color */
+  height: 65vh; /* Set the height of the background to the full viewport height */
+  overflow: auto; /* Enable vertical scrolling if the content overflows */
+}
+
+.table-container {
+  height: 58vh; 
+  overflow-y: auto; /* Enable vertical scrolling if the content overflows */
+}
+
+.table-container-dataviewer {
+  height: 65vh; 
+  overflow-y: auto; /* Enable vertical scrolling if the content overflows */
+}
+
+/* Optionally, you can style the header to make it fixed */
+.table-container thead {
+  position: sticky;
+  top: 0;
+  background-color: #ffffff; /* Set your desired background color for the header */
+  z-index: 1; /* Ensure the header stays above the scrolling content */
+}
+
+
+/*CAROUSEL */
+#carouselBackground {
+  position: absolute; /*in order to use z-index*/
+  background-size: cover;
+  background-position: center center;
+  width: 100%;
+  height: 110vh;
+  top: 0;
+  left: 0;
+}
+
+.carousel-inner { /*carousel background */
+  width: 100%;
+  height: 100%;
+}
+
+.carousel-item img {
+  object-fit: cover; /* Ensure the image covers the entire container */
+  width: 100%;
+  height: 100%;
+}
+.container{
+  z-index:1;
+  padding-left: 2.5%;
+  padding-right: 2.5%;
+}
+
+/*NAVIGATION*/
+.navbar {
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
+}
+
+.navImage{
+  width:20%;
+  height:20%;
+}
+
+.nav-tabs .nav-link {
+  color: grey;
+}
+
+#linkColor:hover{
+  color:black;
+  transition: color 0.3s;
+}
+
+#containerInner{
+  background-color: rgba(255, 255, 255, 0.85);
+  padding-top:1em;
+  padding-bottom:1em;
+  padding-left:2em;
+  padding-right:2em;
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
+}
+
+.admin-link {
+  color: red;
+}
+
+.admin-link:hover {
+  color: rgb(234, 11, 11);
+}
+
+/* Content container*/
+/*Home*/
+#downloadCsvLink{
+width: 12%;
+}
+
+#downloadImageLink{
+  width: 12%;
+}
+#inlineGroup {
+  white-space: nowrap; /* Prevent line breaks */
+}
+
+#inlineGroup > * {
+  display: inline-block; /* Display child elements inline */
+  margin-right: 5px; /* Add minimal margin between elements */
+}
+
+#inlineGroup > *:last-child {
+  margin-right: 0; /* Remove margin for the last child element */
+}
+
+/*Message Board*/
+#th_content{
+  width: 20vw;
+}
+#th_topic{
+  width: 12vw;
+}
+#th_title{
+  width: 15vw;
+}
+#th_user{
+  width: 12vw;
+}
+#th_action{
+  width: 8vw;
+}
+
+#bold{ 
+  font-weight: bold;
+}
+
+#blogPost{
+  border: 2px solid grey; /* Adjust the color as needed */
+} 
+
+#replyCard  {
+  margin-left: 0.5%; /* Specify your left border style */
+  margin-right: 0.5%; /* Specify your right border style */
+}
+
+#replyForm {
+  width: 99%;
+  height: 20vh; /* Set the desired height */
+  margin-top: 1%;
+  margin-left: 0.5%;
+}
+
+#originalPost {
+  height: 20vh; /* Set the desired height */
+}
+#replyEdit {
+  height: 20vh; /* Set the desired height */
+}
+/*Indexes*/
+
+.container {
+  position: relative;
+  overflow: hidden;
+}
+
+#rowFlex {
+  display: flex; 
+  justify-content: space-between; 
+  align-items: flex-end;
+}
+
+#rowFlex .container {
+  margin-top: 0 !important;
+}
+
+#buttonPad {
+  margin-left:1%;
+}
+
+.btn-info{
+  white-space: nowrap;
+}
+
+.container.mt-5{
+  padding-left: 0em;
+  padding-right: 0em;
+}
+
+body {
+  padding: 1%;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+label {
+  display: inline-block;
+  max-width: 100%;
+  margin-top: 0.5em;
+  margin-bottom: 0.2em;
+  font-weight: 700;
+  white-space: nowrap; /* Prevent wrapping onto new line */
+
+}
+
+#dataVisual {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start; /* Align items to the top */
+}
+
+#nameRow {
+  display: flex;
+  justify-content: space-between; /* Create space between the fieldsets */
+  margin-bottom: 1%;
+}
+
+#nameRow fieldset {
+  margin: 0;
+  flex-grow: 1; /* Make both fieldsets take up equal space */
+}
+
+#nameRow fieldset:first-child {
+  margin-right: 2%; 
+}
+
+#name{
+  margin-right:2%;
+}
+#binomialNomenclature{
+  margin-right:2%;
+}
+
+#imageAndName {
+  width: 100%; /* Set the desired width */
+  margin-right: 2%;
+}
+
+#preview {
+  object-fit: contain; /* Maintain aspect ratio without overflowing */
+}
+
+#loginPassword {
+  margin-bottom: 1%; /* Add some spacing between fieldsets */
+}
+
+#help{
+  font-style: italic;
+  font-weight: normal;
+}
+
+#map{
+  margin-top: 0.5%;
+  margin-bottom: 0.5%;
+}
+
+.custom-dot-icon .dot { /*map custom icon*/
+  width: 2px;
+  height: 2px;
+  background-color: rgba(0, 0, 0, 1);
+  border-radius: 50%;
+}
+
+button.offset-3.btn.btn-primary {
+  display: block;
+  margin: 1% auto 0; /* 1% top margin, auto for horizontal centering */
+}
+
+.activePagination {
+  background: #ced4da; /* Light grey dashed border */
+  color: #007bff;
+}
+
+.strike {
+  text-decoration: line-through;
+}
+
+/*Dataviewer index*/
+#buttonPadDataviewer {
+  width: 100%; 
+}
+
+#imageVisual {
+  display: flex;                /* Use Flexbox for centering */
+  justify-content: center;      /* Center horizontally */
+  align-items: center;          /* Center vertically */
+  height: 100%;                 /* Full height of the parent */
+  overflow: hidden;             /* Hide any overflow */
+}
+
+#dataviewerNoImage {
+  width: auto;                 /* Allow width to adjust automatically */
+  height: 100%;                /* Make the image fill the height */
+  object-fit: cover;           /* Cover the entire area */
+}
+
+#dataviewer-dropdown-menu {
+  max-height: 50vh; 
+  overflow-y: auto; 
+}
+
+/*Dataviewer view*/
+.info-container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.locations, .update-dates, .sightings-chart {
+  flex: 1;
+  margin-right: 16px; /* Space between columns */
+}
+
+.locations:last-child, .update-dates:last-child {
+  margin-right: 0; /* Remove margin from the last column */
+}
+
+.sightings-chart {
+  position: relative;
+  max-width: 300px; /* Adjust width for the chart */
+}
+
+.flex-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px; /* Adjust the gap as needed */
+}
+
+.image-container {
+  flex: 0 0 calc(10% - 16px); /* 10 columns with a gap */
+  max-width: calc(10% - 16px); /* Ensure max width matches */
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.flex-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px; /* Optional: for rounded corners */
+  transition: transform 0.3s, filter 0.3s;
+}
+
+.image-container:hover .flex-image {
+  transform: scale(1.1); /* Bounce effect */
+  filter: brightness(1.1); /* Highlight effect */
+}
+
+
+.image-container:active .flex-image {
+  transform: scale(1.5); /* Scale for click effect */
+}
+
+.image-container:focus-within .flex-image {
+  outline: 2px solid #fff; /* Outline on focus (for accessibility) */
+}
+
+/*Plant add.ejs*/
+#top4 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 4 columns */
+  gap: 16px; /* Space between cells */
+}
+
+.match-cell {
+  border: 1px solid #ccc; /* Optional: styling for the cell */
+  padding: 1%; /* Optional: spacing inside the cell */
+  border-radius: 4px; /* Optional: rounded corners */
+  background-color: #f9f9f9; /* Optional: cell background color */
+}
+
+/*Scroll issue with map appearing above table header <th>*/
+.table-container thead {
+  z-index: 2; /* Set a higher z-index for the fixed thead */
+}
+
+.map {
+  z-index: 1;
+}
+
+/*Jumbotron*/
+#indexHeader{ 
+  background-color: rgba(255, 255, 255, 0);
+}
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  margin-left: 1%;
+  margin-right: 1%;
+  flex-shrink: 0;
+}
+
+footer p {
+  margin-top: 1em;
+  margin-bottom: 0; /* Set margin-bottom to 0 to remove the space below the paragraphs */
+}
+
+/*Pagination*/
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top:1em;
+}
+
+.pagination a {
+  margin: 0 5px; /* Optional: Adjust the spacing between pagination items */
+}
+
+/*Gallery*/
+.thumbnail {
+  width: 100%;
+  max-width: 300px;
+  cursor: pointer;
+}
+
+.overlay {
+  z-index: 2;
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.enlarged-image {
+  /*width: 80%;
+  height: auto;*/
+  height: 100vh;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.close {
+  color: #fff;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+/*Worksheet*/
+#preWorksheet {
+  border-right: 1px solid #ddd; /* Optional for a separating line */
+  padding-right: 15px;
+}
+
+#worksheetEntries {
+  list-style-type: none;
+  padding: 0;
+}

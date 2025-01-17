@@ -1,0 +1,50 @@
+<%- include('../partials/header') %>
+<h1><%= title %></h1>
+  
+<!--available to req.body object-->
+<div id="editFormOuter">
+  <div id="editFormInner">
+    <form id="editBacteriaForm" method="POST" enctype="multipart/form-data">
+      <!-- Input names have to match the name of the fields in the mongo schema object -->
+      <!-- Mapping is not automatic, but it's best practices -->
+    <div id="names">
+      <fieldset class="form-group">
+        <label for="name" class="col-2">Common Name:</label>
+        <input name="name" id="name" class="form-control" value="<%= bacterium.name %>" required/>
+      </fieldset>
+      <fieldset class="form-group">
+        <label for="binomialNomenclature" class="col-2">Scientific Name:</label>
+        <input name="binomialNomenclature" id="binomialNomenclature" class="form-control" value="<%= bacterium.binomialNomenclature %>" required/>
+      </fieldset>
+    </div>
+      <fieldset class="form-group">
+        <label for="updateDate" class="col-2">Date Identified:</label>
+        <input name="updateDate" id="updateDate" class="form-control" value="<%= bacterium.updateDate %>" required/>
+      </fieldset>
+      <fieldset class="form-group">
+        <label for="location" class="col-2">Location:</label>
+        <input name="location" id="location" class="form-control" value="<%= bacterium.location %>" required/>
+      </fieldset>
+      <!-- Display the selected location's coordinates -->
+      <div id="coordinates"></div>
+      <!-- Display the selected location's coordinates using Leaflet -->
+      <div id="map" style="height: 300px;"></div>
+
+      <!-- Button needs to be inside <form> element to trigger POST -->
+      <button class="offset-3 btn btn-primary">Save</button>
+    </form>
+  </div>
+</div>
+
+<!--Sanitize data - NOTE: keep this, in-case of user DOM manipulation in browser console-->
+<script defer>
+  document.getElementById('editBacteriaForm').addEventListener('submit', function(event) {
+    // Remove parentheses from name and scientific name
+    const commonNameInput = document.getElementById('name');
+    const scientificInput = document.getElementById('binomialNomenclature');
+
+    commonNameInput.value = commonNameInput.value.replace(/[()]/g, '').trim();
+    scientificInput.value = scientificInput.value.replace(/[()]/g, '').trim();
+  });
+</script>
+<%- include('../partials/footer') %>

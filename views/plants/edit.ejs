@@ -1,0 +1,45 @@
+<%- include('../partials/header') %>
+<h1><%= title %></h1>
+  
+<div id="editFormOuter">
+  <div id="editFormInner">
+    <form id="editPlantForm" method="POST" enctype="multipart/form-data">
+      <div id="names">
+        <fieldset class="form-group">
+          <label for="name" class="col-2">Common Name:</label>
+          <input name="name" id="name" class="form-control" value="<%= plant.name %>" required />
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="binomialNomenclature" class="col-2">Scientific Name:</label>
+          <input name="binomialNomenclature" id="binomialNomenclature" class="form-control" value="<%= plant.binomialNomenclature %>" />
+        </fieldset>
+      </div>
+      <fieldset class="form-group">
+        <label for="updateDate" class="col-2">Date Identified:</label>
+        <input name="updateDate" id="updateDate" class="form-control" value="<%= plant.updateDate %>" required />
+      </fieldset>
+      <fieldset class="form-group">
+        <label for="location" class="col-2">Location:</label>
+        <input name="location" id="location" class="form-control" value="<%= plant.location %>" required />
+      </fieldset>
+      <div id="coordinates"></div>
+      <div id="map" style="height: 300px;"></div>
+
+      <button class="offset-3 btn btn-primary">Save</button>
+    </form>
+  </div>
+</div>
+
+<!--Sanitize data - NOTE: keep this, in-case of user DOM manipulation in browser console-->
+<script defer>
+  document.getElementById('editPlantForm').addEventListener('submit', function(event) {
+    // Remove parentheses from name and scientific name
+    const commonNameInput = document.getElementById('name');
+    const scientificInput = document.getElementById('binomialNomenclature');
+
+    commonNameInput.value = commonNameInput.value.replace(/[()]/g, '').trim();
+    scientificInput.value = scientificInput.value.replace(/[()]/g, '').trim();
+  });
+</script>
+
+<%- include('../partials/footer') %>

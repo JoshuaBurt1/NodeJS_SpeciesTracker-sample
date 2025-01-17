@@ -1,0 +1,20 @@
+<%- include('../partials/header') %>
+    <header>
+        <h1>New Blog Post</h1>
+    </header>
+    <div>
+        <form action="/blogs/addPost" method="POST">
+            <!-- Hidden input field to pass the topic without displaying it to the user -->
+            <input type="hidden" name="topic" value="<%= topic %>" required>
+        
+            <!-- Visible input fields for other form elements -->
+            <label for="title" class="col-2">Title:</label>
+            <input type="text" name="title" class="form-control" required>
+        
+            <label for="content" class="col-2">Content:</label>
+            <textarea name="content" id="originalPost" class="form-control" required></textarea>
+        
+            <button class="offset-3 btn btn-primary">Save</button>
+        </form>
+    </div>
+<%- include('../partials/footer') %>

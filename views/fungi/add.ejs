@@ -1,0 +1,90 @@
+<%- include('../partials/header') %>
+<h1><%= title %></h1>
+    
+<form id="addFungiForm" method="POST" enctype="multipart/form-data">
+  <div id="dataVisual">
+    <div id="imageAndName">
+      <fieldset class="form-group">
+        <label for="image" class="col-2">Image:</label>
+        <input type="file" name="image" id="image" class="form-control" accept=".jpg, .jpeg, .png" required onchange="identifyFungus()">
+      </fieldset>
+      <div id="nameRow">
+        <fieldset class="form-group">
+          <label for="name" class="col-2">Name:</label>
+          <input name="name" id="name" class="form-control" required />
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="binomialNomenclature" class="col-2">Scientific Name:</label>
+          <input name="binomialNomenclature" id="binomialNomenclature" class="form-control" required/>
+        </fieldset>
+      </div>
+      <div id="identificationResult"></div>
+    </div>
+    <div id="imageVisual">
+      <img src="/site_images/noimage.png" alt="No image" id="preview">
+    </div>
+  </div>
+  <fieldset class="form-group">
+    <label for="updateDate" class="col-2">Date Identified:</label>
+    <input name="updateDate" id="updateDate" required class="form-control" placeholder="YYYY:MM:DD HH:mm:ss" />
+  </fieldset>
+  <fieldset class="form-group">
+    <label for="location" class="col-2">Location:</label>
+    <input name="location" id="location" class="form-control" placeholder="Latitude, Longitude (e.g., 45.0000, -45.0000)" required />
+  </fieldset>
+  <div id="coordinates">
+    <span id="help">If unsure of coordinates - enter name of location, then copy map coordinates</span>
+  </div>
+  <div id="map" style="height: 300px;"></div>
+
+  <button class="offset-3 btn btn-primary">Save</button>
+</form>
+
+<script defer>
+async function identifyFungus() {
+  const images = image.files;
+  if (!images || images.length === 0) {
+    console.error('No image selected');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('image', images[0]);
+
+  try {
+    const apiUrl = 'http://localhost:3000/identifyM'; // Correct endpoint
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.identification) {
+      console.error('Identification not found in response data');
+      return;
+    }
+
+    const identificationResult = data.identification;
+    document.getElementById('identificationResult').innerText = identificationResult;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+//Sanitize data - NOTE: keep this, in-case of user DOM manipulation in browser console-->
+document.getElementById('addFungiForm').addEventListener('submit', function(event) {
+  // Remove parentheses from name and scientific name
+  const commonNameInput = document.getElementById('name');
+  const scientificInput = document.getElementById('binomialNomenclature');
+
+  commonNameInput.value = commonNameInput.value.replace(/[()]/g, '').trim();
+  scientificInput.value = scientificInput.value.replace(/[()]/g, '').trim();
+});
+</script>
+
+<%- include('../partials/footer') %>

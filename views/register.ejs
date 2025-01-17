@@ -1,0 +1,73 @@
+<%- include('./partials/header') %>
+<h1>
+  Register
+</h1>
+<div id="editFormOuter">
+  <div id="editFormInner">
+    <form method="post">
+      <fieldset class="form-group">
+        <label for="username" class="col-2">
+          Username: *
+        </label>
+        <input
+          name="username"
+          id="username"
+          required
+          class="form-control"
+        />
+      </fieldset>
+      <fieldset class="form-group">
+        <label for="email" class="col-2">
+          Email: *
+        </label>
+        <input
+          name="email"
+          id="email"
+          required
+          type="email"
+          placeholder="email@email.com"
+          class="form-control"
+        />
+      </fieldset>
+      <fieldset class="form-group">
+        <label for="password" class="col-2 control-label">
+          Password: *
+        </label>
+        <input
+          name="password"
+          id="password"
+          type="password"
+          required
+          pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+          class="form-control"
+        />
+      </fieldset>
+      <fieldset class="form-group">
+        <label for="confirm" class="col-2 control-label">
+          Confirm: *
+        </label>
+        <input
+          name="confirm"
+          id="confirm"
+          type="password"
+          required
+          pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+          class="form-control"
+        />
+      </fieldset>
+      <fieldset class="form-groupR">
+        <button class="btn btn-info">
+          Register
+        </button>
+      </fieldset>
+      <hr>
+      <div id="editFormOuter">
+        <p class="registerP">Already have an account?</p>
+        <a href="/login" title="Login">
+          Login
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+<%- include('./partials/footer') %>

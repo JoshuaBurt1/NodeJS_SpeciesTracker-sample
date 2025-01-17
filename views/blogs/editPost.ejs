@@ -1,0 +1,16 @@
+<%- include('../partials/header') %>
+<header>
+    <h1>Edit Blog Post</h1>
+</header>
+<div>
+    <form action="/blogs/editPost/<%= blog._id %>" method="POST">
+        <label for="name" class="col-2">Name:</label>
+        <input name="name" id="name" class="form-control" value="<%= blog.title %>" required/>
+
+        <label for="content" class="col-2">Content:</label>
+        <textarea name="content" id="originalPost" class="form-control" required><%= blog.content %></textarea>
+
+      <button class="offset-3 btn btn-primary">Save</button>
+    </form>
+</div>
+<%- include('../partials/footer') %>
