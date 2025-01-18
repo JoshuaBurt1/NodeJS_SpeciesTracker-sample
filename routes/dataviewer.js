@@ -4,7 +4,7 @@ var router = express.Router();
 var logMiddleware = require('../logMiddleware'); // Route logging middleware
 
 // Import configurations
-const configurations = require('../config/globals'); // Adjust the path as necessary
+//const configurations = require('../config/globals'); // Adjust the path as necessary
 const OpenAI = require('openai');
 const openai = new OpenAI({
     //apiKey: configurations.openAIAPIKey, // Use the key from your config
