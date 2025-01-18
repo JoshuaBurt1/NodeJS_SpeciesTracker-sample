@@ -1,7 +1,7 @@
 # SpeciesTracker
 Concept biological catalogue; contains approximately 1 GB of images.<br>
 
-https://speciestracker3.azurewebsites.net/
+https://species-tracker.onrender.com
 
 # To Start: <br>
 * Download zip, open in code editor (i.e. VS code)
@@ -33,4 +33,3 @@ module.exports = configurations;<br>
 ~Website databaseAPI, csv download, total image download <br>
 ~User authentication & github auth <br>
 ~Message board <br>
-~Admin privileges <br>
