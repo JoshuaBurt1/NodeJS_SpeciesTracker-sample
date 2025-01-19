@@ -167,7 +167,70 @@
 
 
 <script defer>
+function addToWorksheet(binomialNomenclature, timePeriod) {
+    const entry = document.createElement('li');
+    entry.innerHTML = `${binomialNomenclature} <br> Time Period: ${timePeriod}<br>`;
+    document.getElementById('worksheetEntries').appendChild(entry);
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
+
+    const rows = document.querySelectorAll("tbody tr");
+    const locations = [];
+    const updateDates = [];
+    const binomialNomenclatures = [];
+    const names = [];
+
+    rows.forEach(row => {
+      // Collect binomial nomenclature and name
+      const binomialNomenclature = row.querySelector('td:nth-child(1) i').textContent; // Adjust if necessary
+      const name = row.querySelector('td:nth-child(1) b').textContent;
+
+      // Collect locations
+      const locationList = row.querySelector(".coordinates ul");
+      if (locationList) {
+        locationList.querySelectorAll("li").forEach(location => {
+          locations.push(location.textContent);
+        });
+      }
+
+      // Collect update dates
+      const updateDateList = row.querySelector("td:nth-child(2) ul");
+      if (updateDateList) {
+        updateDateList.querySelectorAll("li").forEach(date => {
+          updateDates.push(date.textContent);
+        });
+      }
+
+      // Add to binomial nomenclatures and names arrays
+      binomialNomenclatures.push(binomialNomenclature);
+      names.push(name);
+    });
+
+    // Log the collected data
+    console.log({ binomialNomenclatures, names, updateDates, locations });
+
+    // Send the data to the server when needed
+    document.getElementById('analyze').addEventListener('click', async () => {
+      try {
+        const response = await fetch('/dataviewer/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ binomialNomenclatures, names, updateDates, locations }),
+        });
+
+        const result = await response.json();
+        const resultArea = document.getElementById('resultArea');
+        resultArea.innerHTML = `<pre>${result}</pre>`; // Display result in a formatted way
+      } catch (error) {
+        console.error('Error:', error);
+        const resultArea = document.getElementById('resultArea');
+        resultArea.innerHTML = 'Failed to analyze data. Please try again.';
+      }
+    });
+
     var coordinatesElements = document.querySelectorAll('.coordinates');
 
     var dotIcon = L.divIcon({
