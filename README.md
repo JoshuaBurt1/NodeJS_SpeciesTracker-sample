@@ -1,9 +1,8 @@
 # SpeciesTracker
 Concept biological catalogue; contains approximately 1 GB of images.<br>
 Sample version changes: <br>
-- If redeployed on Render hosting service, then all user upload images (sample instance are deleted). Only those images uploaded to GitHub will be in place. <br>
+- If redeployed on Render hosting service, then all user upload images (sample instance) are deleted. Only those images uploaded to GitHub will be in place. <br>
 - Map script is created in each respective view. <br>
-https://species-tracker.onrender.com <br>
 
 # Capabilities <br>
 ~Database with create, read, update, delete <br>

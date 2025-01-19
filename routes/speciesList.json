@@ -1,5 +1,21 @@
 [
   {
+    "name": "Moose",
+    "binomialNomenclature": "Alces alces"
+  },
+  {
+    "name": "Ruffed Grouse",
+    "binomialNomenclature": "Bonasa umbellus"
+  },
+  {
+    "name": "Northern Painted Turtle",
+    "binomialNomenclature": "Chrysemys picta"
+  },
+  {
+    "name": "Goldenrod crab spider",
+    "binomialNomenclature": "Misumena vatia"
+  },
+  {
     "name": "Scrambled egg slime",
     "binomialNomenclature": "Fuligo septica"
   },
