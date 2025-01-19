@@ -205,8 +205,3 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
-
-/*A decision was made regarding the mapping:
-Option 1. Use lines connecting to each coordinate point on the map to show potential distribution -> n^2 calculations/drawings
-Option 2. Use a grid and simply count the number in the grid -> n calculations (current)
-*/
