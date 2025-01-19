@@ -1,26 +1,9 @@
 # SpeciesTracker
 Concept biological catalogue; contains approximately 1 GB of images.<br>
-
-https://species-tracker.onrender.com
-
-# To Start: <br>
-* Download zip, open in code editor (i.e. VS code)
-* Download Node.js, create a MongoDB account and cluster
-* Download node_modules. In terminal: npm install
-* Add folder & file config/globals.js <br>
-const configurations = {  <br>
-  plantNetAPI: "your_plantNet_API_key", <br>
-  openAIAPIKey: "your_openAI_API_key", <br>
-  db: "your_mongodb_link",  <br>
-  github: { <br>
-    clientId: "your_id", <br>
-    clientSecret: "your_secret", <br>
-    callbackUrl: "callback_url", <br>
-  }, <br>
-}; <br>
-module.exports = configurations;<br>
-* In terminal: npm start
-* Open a browser and run in http://localhost:3000/ or http://localhost:3001/
+Sample version changes: <br>
+- If redeployed on Render hosting service, then all user upload images (sample instance are deleted). Only those images uploaded to GitHub will be in place. <br>
+- Map script is created in each respective view. <br>
+https://species-tracker.onrender.com <br>
 
 # Capabilities <br>
 ~Database with create, read, update, delete <br>
@@ -33,3 +16,21 @@ module.exports = configurations;<br>
 ~Website databaseAPI, csv download, total image download <br>
 ~User authentication & github auth <br>
 ~Message board <br>
+
+# To Start: <br>
+Click on the link. <br>
+https://species-tracker.onrender.com <br>
+
+# To Run Locally: <br>
+* Download zip, open in code editor (i.e. VS code)
+* Download Node.js, create a MongoDB account and cluster
+* Download node_modules. In terminal: npm install
+* Add .env file at root of folder containing the following: <br>
+DB_STRING= your_mongodb_connection_string <br>
+GITHUB_CLIENTID = your_id <br>
+GITHUB_CLIENTSECRET = your_secret <br>
+GITHUB_CALLBACKURL = callback_url <br>
+PLANTNET_APIKEY = your_plantNet_API_key <br>
+OPENAI_APIKEY = your_openAI_API_key <br>
+* In terminal: npm start
+* Open a browser and run in http://localhost:3000/ or http://localhost:3001/
