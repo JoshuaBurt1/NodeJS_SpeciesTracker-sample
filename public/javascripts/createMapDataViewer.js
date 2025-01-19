@@ -205,3 +205,5 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
+
+//There is in issue with this being accessed by Render hosting site, so the script is written in each view that uses it
