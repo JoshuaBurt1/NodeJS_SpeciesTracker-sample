@@ -1,5 +1,45 @@
 [
   {
+    "name": "Canadian Wild Ginger",
+    "binomialNomenclature": "Asarum canadense L."
+  },
+  {
+    "name": "Bursting-heart",
+    "binomialNomenclature": "Euonymus americanus L."
+  },
+  {
+    "name": "Mayapple",
+    "binomialNomenclature": "Podophyllum peltatum L."
+  },
+  {
+    "name": "Lowbush blueberry",
+    "binomialNomenclature": "Vaccinium angustifolium Aiton"
+  },
+  {
+    "name": "Bog blueberry",
+    "binomialNomenclature": "Vaccinium uliginosum L."
+  },
+  {
+    "name": "Bear's head tooth",
+    "binomialNomenclature": "Hericium americanum"
+  },
+  {
+    "name": "Chicken of the Woods",
+    "binomialNomenclature": "Laetiporus sulphureus"
+  },
+  {
+    "name": "White Morel",
+    "binomialNomenclature": "Morchella americana"
+  },
+  {
+    "name": "Black Morel",
+    "binomialNomenclature": "Morchella elata"
+  },
+  {
+    "name": "Golden Pholiota",
+    "binomialNomenclature": "Pholiota aurivella"
+  },
+  {
     "name": "Moose",
     "binomialNomenclature": "Alces alces"
   },
