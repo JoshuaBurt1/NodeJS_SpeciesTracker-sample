@@ -118,53 +118,65 @@ router.get("/add", IsLoggedIn, logMiddleware, (req, res, next) => {
   res.render("fungi/add", { user: req.user, title: "Add a new Fungus" });
 });
 
-//POST handler for /fungi/add (saves new entry to database)
+
+// POST handler for /fungi/add (saves new entry to database)
 router.post("/add", IsLoggedIn, upload.single('image'), async (req, res, next) => {
   try {
-    const uniqueImageName = createUniqueImageName(req.body.name, req.file.originalname);
-    // Move the uploaded image to the new destination path
+    const userId = req.user._id;
+    const binomialName = req.body.binomialNomenclature || "Unnamed";
+    const originalName = req.file.originalname;
+    const timestamp = Date.now(); // Use current timestamp
+
+    // Construct the filename: binomialNomenclature_timestamp_userId.ext
+    const fileExtension = path.extname(originalName);
+    const safeName = binomialName.replace(/\s+/g, "_"); // Replace spaces with underscores
+    const uniqueImageName = `${safeName}_${timestamp}_${userId}${fileExtension}`;
+
     const newDestinationPath = path.join(__dirname, '..', userImagesPath, uniqueImageName);
     await fs.promises.rename(req.file.path, newDestinationPath);
-    // Extract metadata from the image
+
+    // Extract metadata
     const metadata = await Exifr.parse(newDestinationPath);
-    // Convert GPS coordinates to decimal form
-    const imageGPS = metadata?.GPSLatitude && metadata?.GPSLongitude ? convertToDecimal(metadata.GPSLatitude, metadata.GPSLongitude, metadata.GPSLatitudeRef, metadata.GPSLongitudeRef) : null;
-    // Convert date to the specified format
+
+    // Convert GPS to decimal if available
+    const imageGPS = metadata?.GPSLatitude && metadata?.GPSLongitude
+      ? convertToDecimal(metadata.GPSLatitude, metadata.GPSLongitude, metadata.GPSLatitudeRef, metadata.GPSLongitudeRef)
+      : null;
+
+    // Convert image date if available
     const imageDate = metadata?.DateTimeOriginal ? convertToDate(metadata.DateTimeOriginal) : null;
-    console.log(req.body.location);
-    console.log(req.body.updateDate);
-    var locationDataIntegrityValue;
-    var dateDataIntegrityValue;
-    if(imageDate === req.body.updateDate){
-      dateDataIntegrityValue = 0;
-    }else{
-      dateDataIntegrityValue = 1;
-    }
-    if (imageGPS === req.body.location) {
-      locationDataIntegrityValue = 0;
-    }else{
-      locationDataIntegrityValue = 1;
-    }
-    // Create a new fungus entry for the updated image
+
+    // Use form input or fallback to metadata
+    const location = req.body.location || imageGPS;
+    const updateDate = req.body.updateDate || imageDate;
+
+    // Integrity checks
+    const dateDataIntegrityValue = updateDate === imageDate ? 0 : 1;
+    const locationDataIntegrityValue = location === imageGPS ? 0 : 1;
+
+    // Create fungus entry
     const createdModel = await Fungus.create({
-      name: req.body.name,
-      binomialNomenclature: req.body.binomialNomenclature,
-      updateDate: req.body.updateDate,
-      location: req.body.location,
+      name: req.body.name || "Unnamed",
+      binomialNomenclature: binomialName,
+      updateDate: updateDate,
+      location: location,
       image: uniqueImageName,
-      user: req.user._id,
+      user: userId,
       dateChanged: dateDataIntegrityValue,
       locationChanged: locationDataIntegrityValue,
     });
-    console.log("Model created successfully:", createdModel);
-    console.log(imageGPS);
-    console.log(imageDate);
+
+    console.log("Fungus model created successfully:", createdModel);
     res.redirect("/fungi");
+
   } catch (error) {
     console.error("An error occurred:", error);
     res.redirect("/error");
   }
 });
+
+
+
 
 // GET handler for /fungi/edit (loads page)
 router.get("/edit/:_id", IsLoggedIn, logMiddleware, async  (req, res, next) => {
@@ -183,6 +195,8 @@ router.get("/edit/:_id", IsLoggedIn, logMiddleware, async  (req, res, next) => {
   }
 });
 
+
+
 // POST handler for /fungi/edit (edits entry)
 router.post("/edit/:_id", IsLoggedIn, upload.single('image'), async (req, res, next) => {
   try {
@@ -192,18 +206,66 @@ router.post("/edit/:_id", IsLoggedIn, upload.single('image'), async (req, res, n
       console.log("Fungus not found");
       return res.redirect("/error");
     }
-    const imagePath = req.file ? req.file.path : fungusToUpdate.image;
-    console.log("Current image path: "+ imagePath);
-    // Step 2: Handle the new image upload
-    const newDestinationPath = path.join(__dirname, '..', userImagesPath, imagePath);
-    // Extract metadata from the new image
-    const metadata = await Exifr.parse(newDestinationPath);
-    const imageGPS = metadata?.GPSLatitude && metadata?.GPSLongitude ? convertToDecimal(metadata.GPSLatitude, metadata.GPSLongitude, metadata.GPSLatitudeRef, metadata.GPSLongitudeRef) : null;
+
+    const oldImagePath = fungusToUpdate.image;
+    const oldImageAbsolutePath = path.join(__dirname, '..', userImagesPath, oldImagePath);
+
+    // Extract extension and filename without extension
+    const ext = path.extname(oldImagePath);
+    const oldFilename = path.basename(oldImagePath, ext);
+
+    // Extract userId from old filename (last underscore-separated part)
+    const parts = oldFilename.split('_');
+    const userIdFromOld = parts.length > 0 ? parts[parts.length - 1] : req.user._id.toString();
+
+    // Sanitize binomialNomenclature
+    const safeBinomial = req.body.binomialNomenclature.replace(/\s+/g, '_').toLowerCase();
+
+    // Generate new timestamp
+    const timestamp = Date.now();
+
+    // Compose new filename
+    const newImageFilename = `${safeBinomial}_${timestamp}_${userIdFromOld}${ext}`;
+    const newImageRelativePath = newImageFilename;
+    const newImageAbsolutePath = path.join(__dirname, '..', userImagesPath, newImageRelativePath);
+
+    let finalImagePath;
+
+    if (req.file) {
+      // Rename uploaded file to new filename
+      await fs.promises.rename(req.file.path, newImageAbsolutePath);
+
+      // Delete old image if different
+      if (oldImagePath && oldImagePath !== newImageRelativePath) {
+        try {
+          await fs.promises.unlink(oldImageAbsolutePath);
+          console.log(`Deleted old image file: ${oldImageAbsolutePath}`);
+        } catch (err) {
+          console.warn(`Failed to delete old image file: ${oldImageAbsolutePath}`, err);
+        }
+      }
+
+      finalImagePath = newImageRelativePath;
+
+    } else {
+      // No new image, rename old file if filename changed
+      if (oldImagePath !== newImageRelativePath) {
+        await fs.promises.rename(oldImageAbsolutePath, newImageAbsolutePath);
+        finalImagePath = newImageRelativePath;
+      } else {
+        finalImagePath = oldImagePath;
+      }
+    }
+
+    // Extract metadata & update DB
+    const metadata = await Exifr.parse(newImageAbsolutePath);
+    const imageGPS = metadata?.GPSLatitude && metadata?.GPSLongitude
+      ? convertToDecimal(metadata.GPSLatitude, metadata.GPSLongitude, metadata.GPSLatitudeRef, metadata.GPSLongitudeRef)
+      : null;
     const imageDate = metadata?.DateTimeOriginal ? convertToDate(metadata.DateTimeOriginal) : null;
     const dateDataIntegrityValue = (imageDate === req.body.updateDate) ? 0 : 1;
     const locationDataIntegrityValue = (imageGPS === req.body.location) ? 0 : 1;
 
-    // Step 3: Update the entry
     await Fungus.findOneAndUpdate(
       { _id: req.params._id },
       {
@@ -211,18 +273,23 @@ router.post("/edit/:_id", IsLoggedIn, upload.single('image'), async (req, res, n
         binomialNomenclature: req.body.binomialNomenclature,
         updateDate: req.body.updateDate,
         location: req.body.location,
-        image: imagePath, // Use the new image path or retain the old one
-        user: req.user._id, // Use req.user._id to get the currently logged-in user's ID
+        image: finalImagePath,
+        user: req.user._id,
         dateChanged: dateDataIntegrityValue,
         locationChanged: locationDataIntegrityValue,
       }
     );
+
     res.redirect("/fungi");
+
   } catch (err) {
-    console.error("Update error:", err); // Log the error for debugging
+    console.error("Update error:", err);
     res.redirect("/error");
   }
 });
+
+
+
 
 //TODO D > Delete a fungus
 // GET /fungi/delete/652f1cb7740320402d9ba04d

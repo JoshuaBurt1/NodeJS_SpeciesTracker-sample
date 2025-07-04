@@ -187,27 +187,80 @@ router.get("/edit/:_id", IsLoggedIn, logMiddleware, async  (req, res, next) => {
   }
 });
 
-// POST handler for /plants/edit (edits entry)
+
+
+
 router.post("/edit/:_id", IsLoggedIn, upload.single('image'), async (req, res, next) => {
   try {
-    // Step 1: Retrieve the existing plant entry
     const plantToUpdate = await Plant.findById(req.params._id).exec();
     if (!plantToUpdate) {
       console.log("Plant not found");
       return res.redirect("/error");
     }
-    const imagePath = req.file ? req.file.path : plantToUpdate.image;
-    console.log("Current image path: "+ imagePath);
-    // Step 2: Handle the new image upload
-    const newDestinationPath = path.join(__dirname, '..', userImagesPath, imagePath);
-    // Extract metadata from the new image
-    const metadata = await Exifr.parse(newDestinationPath);
-    const imageGPS = metadata?.GPSLatitude && metadata?.GPSLongitude ? convertToDecimal(metadata.GPSLatitude, metadata.GPSLongitude, metadata.GPSLatitudeRef, metadata.GPSLongitudeRef) : null;
+
+    const oldImagePath = plantToUpdate.image;
+    const oldImageAbsolutePath = path.join(__dirname, '..', userImagesPath, oldImagePath);
+
+    // Extract extension
+    const ext = path.extname(oldImagePath);
+
+    // Extract filename without extension
+    const oldFilename = path.basename(oldImagePath, ext);
+
+    // Split old filename by underscore to get parts
+    const parts = oldFilename.split('_');
+
+    // Extract userId (last part)
+    const userId = parts.length > 0 ? parts[parts.length - 1] : req.user._id.toString();
+
+    // Sanitize new binomialNomenclature
+    const safeBinomial = req.body.binomialNomenclature.replace(/\s+/g, '_').toLowerCase();
+
+    // Generate new timestamp
+    const timestamp = Date.now();
+
+    // Compose new filename
+    const newImageFilename = `${safeBinomial}_${timestamp}_${userId}${ext}`;
+    const newImageRelativePath = newImageFilename;
+    const newImageAbsolutePath = path.join(__dirname, '..', userImagesPath, newImageRelativePath);
+
+    let finalImagePath;
+
+    if (req.file) {
+      // Rename uploaded file to new filename
+      await fs.promises.rename(req.file.path, newImageAbsolutePath);
+
+      // Delete old image if different
+      if (oldImagePath && oldImagePath !== newImageRelativePath) {
+        try {
+          await fs.promises.unlink(oldImageAbsolutePath);
+          console.log(`Deleted old image file: ${oldImageAbsolutePath}`);
+        } catch (err) {
+          console.warn(`Failed to delete old image file: ${oldImageAbsolutePath}`, err);
+        }
+      }
+
+      finalImagePath = newImageRelativePath;
+
+    } else {
+      // No new image, rename old file if filename changed
+      if (oldImagePath !== newImageRelativePath) {
+        await fs.promises.rename(oldImageAbsolutePath, newImageAbsolutePath);
+        finalImagePath = newImageRelativePath;
+      } else {
+        finalImagePath = oldImagePath;
+      }
+    }
+
+    // Extract metadata & update DB (same as before)
+    const metadata = await Exifr.parse(newImageAbsolutePath);
+    const imageGPS = metadata?.GPSLatitude && metadata?.GPSLongitude
+      ? convertToDecimal(metadata.GPSLatitude, metadata.GPSLongitude, metadata.GPSLatitudeRef, metadata.GPSLongitudeRef)
+      : null;
     const imageDate = metadata?.DateTimeOriginal ? convertToDate(metadata.DateTimeOriginal) : null;
     const dateDataIntegrityValue = (imageDate === req.body.updateDate) ? 0 : 1;
     const locationDataIntegrityValue = (imageGPS === req.body.location) ? 0 : 1;
 
-    // Step 3: Update the entry
     await Plant.findOneAndUpdate(
       { _id: req.params._id },
       {
@@ -215,18 +268,22 @@ router.post("/edit/:_id", IsLoggedIn, upload.single('image'), async (req, res, n
         binomialNomenclature: req.body.binomialNomenclature,
         updateDate: req.body.updateDate,
         location: req.body.location,
-        image: imagePath, // Use the new image path or retain the old one
-        user: req.user._id, // Use req.user._id to get the currently logged-in user's ID
+        image: finalImagePath,
+        user: req.user._id,
         dateChanged: dateDataIntegrityValue,
         locationChanged: locationDataIntegrityValue,
       }
     );
+
     res.redirect("/plants");
+
   } catch (err) {
-    console.error("Update error:", err); // Log the error for debugging
+    console.error("Update error:", err);
     res.redirect("/error");
   }
 });
+
+
 
 // GET /plants/delete/652f1cb7740320402d9ba04d
 router.get("/delete/:_id", IsLoggedIn, async (req, res, next) => {

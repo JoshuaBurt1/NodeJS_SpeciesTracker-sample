@@ -118,34 +118,49 @@ router.get("/add", IsLoggedIn, logMiddleware, (req, res, next) => {
   res.render("animals/add", { user: req.user, title: "Add a new Animal" });
 });
 
+
+
 //POST handler for /animals/add (saves entry to database)
 router.post("/add", IsLoggedIn, upload.single('image'), async (req, res, next) => {
   try {
-    const uniqueImageName = createUniqueImageName(req.body.name, req.file.originalname);
-    // Move the uploaded image to the new destination path
+    if (!req.file) {
+      console.log("No image uploaded");
+      return res.redirect("/error");
+    }
+
+    // Extract extension from uploaded image
+    const ext = path.extname(req.file.originalname);
+
+    // Sanitize binomialNomenclature
+    const safeBinomial = req.body.binomialNomenclature.replace(/\s+/g, '_').toLowerCase();
+
+    // Generate timestamp
+    const timestamp = Date.now();
+
+    // Use logged-in user ID
+    const userId = req.user._id.toString();
+
+    // Compose new unique image filename
+    const uniqueImageName = `${safeBinomial}_${timestamp}_${userId}${ext}`;
+
+    // Define destination path
     const newDestinationPath = path.join(__dirname, '..', userImagesPath, uniqueImageName);
+
+    // Rename/move uploaded file to new path
     await fs.promises.rename(req.file.path, newDestinationPath);
-    // Extract metadata from the image
+
+    // Extract metadata
     const metadata = await Exifr.parse(newDestinationPath);
-    // Convert GPS coordinates to decimal form
-    const imageGPS = metadata?.GPSLatitude && metadata?.GPSLongitude ? convertToDecimal(metadata.GPSLatitude, metadata.GPSLongitude, metadata.GPSLatitudeRef, metadata.GPSLongitudeRef) : null;
-    // Convert date to the specified format
+    const imageGPS = metadata?.GPSLatitude && metadata?.GPSLongitude
+      ? convertToDecimal(metadata.GPSLatitude, metadata.GPSLongitude, metadata.GPSLatitudeRef, metadata.GPSLongitudeRef)
+      : null;
     const imageDate = metadata?.DateTimeOriginal ? convertToDate(metadata.DateTimeOriginal) : null;
-    //console.log(req.body.location);
-    //console.log(req.body.updateDate);
-    var locationDataIntegrityValue;
-    var dateDataIntegrityValue;
-    if(imageDate === req.body.updateDate){
-      dateDataIntegrityValue = 0;
-    }else{
-      dateDataIntegrityValue = 1;
-    }
-    if (imageGPS === req.body.location) {
-      locationDataIntegrityValue = 0;
-    }else{
-      locationDataIntegrityValue = 1;
-    }
-    // Create a new animal entry for the updated image
+
+    // Data integrity checks
+    const dateDataIntegrityValue = (imageDate === req.body.updateDate) ? 0 : 1;
+    const locationDataIntegrityValue = (imageGPS === req.body.location) ? 0 : 1;
+
+    // Create Animal record
     const createdModel = await Animal.create({
       name: req.body.name,
       binomialNomenclature: req.body.binomialNomenclature,
@@ -156,15 +171,17 @@ router.post("/add", IsLoggedIn, upload.single('image'), async (req, res, next) =
       dateChanged: dateDataIntegrityValue,
       locationChanged: locationDataIntegrityValue,
     });
-    console.log("Model created successfully:", createdModel);
-    //console.log(imageGPS);
-    //console.log(imageDate);
+
+    console.log("Animal created:", createdModel);
     res.redirect("/animals");
+
   } catch (error) {
-    console.error("An error occurred:", error);
+    console.error("Animal creation error:", error);
     res.redirect("/error");
   }
 });
+
+
 
 //GET handler for /animals/edit (loads)
 router.get("/edit/:_id", IsLoggedIn, logMiddleware, async  (req, res, next) => {
@@ -183,6 +200,7 @@ router.get("/edit/:_id", IsLoggedIn, logMiddleware, async  (req, res, next) => {
   }
 });
 
+
 // POST handler for /animals/edit (edits entry)
 router.post("/edit/:_id", IsLoggedIn, upload.single('image'), async (req, res, next) => {
   try {
@@ -192,18 +210,66 @@ router.post("/edit/:_id", IsLoggedIn, upload.single('image'), async (req, res, n
       console.log("Animal not found");
       return res.redirect("/error");
     }
-    const imagePath = req.file ? req.file.path : animalToUpdate.image;
-    console.log("Current image path: "+ imagePath);
-    // Step 2: Handle the new image upload
-    const newDestinationPath = path.join(__dirname, '..', userImagesPath, imagePath);
-    // Extract metadata from the new image
-    const metadata = await Exifr.parse(newDestinationPath);
-    const imageGPS = metadata?.GPSLatitude && metadata?.GPSLongitude ? convertToDecimal(metadata.GPSLatitude, metadata.GPSLongitude, metadata.GPSLatitudeRef, metadata.GPSLongitudeRef) : null;
+
+    const oldImagePath = animalToUpdate.image;
+    const oldImageAbsolutePath = path.join(__dirname, '..', userImagesPath, oldImagePath);
+
+    // Extract extension and filename without extension
+    const ext = path.extname(oldImagePath);
+    const oldFilename = path.basename(oldImagePath, ext);
+
+    // Extract userId from old filename (last underscore-separated part)
+    const parts = oldFilename.split('_');
+    const userIdFromOld = parts.length > 0 ? parts[parts.length - 1] : req.user._id.toString();
+
+    // Sanitize binomialNomenclature
+    const safeBinomial = req.body.binomialNomenclature.replace(/\s+/g, '_').toLowerCase();
+
+    // Generate new timestamp
+    const timestamp = Date.now();
+
+    // Compose new filename
+    const newImageFilename = `${safeBinomial}_${timestamp}_${userIdFromOld}${ext}`;
+    const newImageRelativePath = newImageFilename;
+    const newImageAbsolutePath = path.join(__dirname, '..', userImagesPath, newImageRelativePath);
+
+    let finalImagePath;
+
+    if (req.file) {
+      // Rename uploaded file to new filename
+      await fs.promises.rename(req.file.path, newImageAbsolutePath);
+
+      // Delete old image if different
+      if (oldImagePath && oldImagePath !== newImageRelativePath) {
+        try {
+          await fs.promises.unlink(oldImageAbsolutePath);
+          console.log(`Deleted old image file: ${oldImageAbsolutePath}`);
+        } catch (err) {
+          console.warn(`Failed to delete old image file: ${oldImageAbsolutePath}`, err);
+        }
+      }
+
+      finalImagePath = newImageRelativePath;
+
+    } else {
+      // No new image, rename old file if filename changed
+      if (oldImagePath !== newImageRelativePath) {
+        await fs.promises.rename(oldImageAbsolutePath, newImageAbsolutePath);
+        finalImagePath = newImageRelativePath;
+      } else {
+        finalImagePath = oldImagePath;
+      }
+    }
+
+    // Extract metadata & update DB
+    const metadata = await Exifr.parse(newImageAbsolutePath);
+    const imageGPS = metadata?.GPSLatitude && metadata?.GPSLongitude
+      ? convertToDecimal(metadata.GPSLatitude, metadata.GPSLongitude, metadata.GPSLatitudeRef, metadata.GPSLongitudeRef)
+      : null;
     const imageDate = metadata?.DateTimeOriginal ? convertToDate(metadata.DateTimeOriginal) : null;
     const dateDataIntegrityValue = (imageDate === req.body.updateDate) ? 0 : 1;
     const locationDataIntegrityValue = (imageGPS === req.body.location) ? 0 : 1;
 
-    // Step 3: Update the entry
     await Animal.findOneAndUpdate(
       { _id: req.params._id },
       {
@@ -211,18 +277,24 @@ router.post("/edit/:_id", IsLoggedIn, upload.single('image'), async (req, res, n
         binomialNomenclature: req.body.binomialNomenclature,
         updateDate: req.body.updateDate,
         location: req.body.location,
-        image: imagePath, // Use the new image path or retain the old one
-        user: req.user._id, // Use req.user._id to get the currently logged-in user's ID
+        image: finalImagePath,
+        user: req.user._id,
         dateChanged: dateDataIntegrityValue,
         locationChanged: locationDataIntegrityValue,
       }
     );
+
     res.redirect("/animals");
+
   } catch (err) {
-    console.error("Update error:", err); // Log the error for debugging
+    console.error("Update error:", err);
     res.redirect("/error");
   }
 });
+
+
+
+
 
 // GET /animals/delete/652f1cb7740320402d9ba04d
 router.get("/delete/:_id", IsLoggedIn, async (req, res, next) => {
